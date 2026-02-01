@@ -1,252 +1,181 @@
 // GerustThuis Projectplan Data
-// Fasen, acties, planning en budget
+// Fases met go/no-go criteria en tickets
 
-export const fasen = [
-  {
-    id: 1,
-    naam: 'Fase 1: Fundament',
-    beschrijving: 'Technische infrastructuur en basis functionaliteit',
-    status: 'actief',
-    startDatum: '2026-01-01',
-    eindDatum: '2026-03-31',
-    voortgang: 75
+export const initialData = {
+  project: {
+    name: "GerustThuis",
+    description: "Privacy-first monitoring systeem voor ouderen",
+    totalBudget: 6500,
+    currency: "EUR"
   },
-  {
-    id: 2,
-    naam: 'Fase 2: Gebruikerservaring',
-    beschrijving: 'Dashboard, patronen en analyse views',
-    status: 'actief',
-    startDatum: '2026-02-01',
-    eindDatum: '2026-04-30',
-    voortgang: 40
-  },
-  {
-    id: 3,
-    naam: 'Fase 3: Intelligentie',
-    beschrijving: 'Machine learning en voorspellende analyses',
-    status: 'gepland',
-    startDatum: '2026-04-01',
-    eindDatum: '2026-06-30',
-    voortgang: 0
-  },
-  {
-    id: 4,
-    naam: 'Fase 4: Integraties',
-    beschrijving: 'Externe systemen en notificaties',
-    status: 'gepland',
-    startDatum: '2026-05-01',
-    eindDatum: '2026-07-31',
-    voortgang: 0
-  },
-  {
-    id: 5,
-    naam: 'Fase 5: Schaalbaarheid',
-    beschrijving: 'Multi-tenant en enterprise features',
-    status: 'gepland',
-    startDatum: '2026-07-01',
-    eindDatum: '2026-09-30',
-    voortgang: 0
-  }
-]
-
-export const acties = [
-  // Fase 1
-  {
-    id: 1,
-    faseId: 1,
-    titel: 'Supabase database setup',
-    beschrijving: 'PostgreSQL schema met RLS policies',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Tech Lead'
-  },
-  {
-    id: 2,
-    faseId: 1,
-    titel: 'Hue Bridge integratie',
-    beschrijving: 'SSE connectie voor real-time sensor events',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Backend Dev'
-  },
-  {
-    id: 3,
-    faseId: 1,
-    titel: 'Vue 3 portaal opzet',
-    beschrijving: 'Frontend applicatie met Vite',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Frontend Dev'
-  },
-  {
-    id: 4,
-    faseId: 1,
-    titel: 'Sensor health monitoring',
-    beschrijving: 'Battery tracking en liveness detectie',
-    status: 'actief',
-    prioriteit: 'medium',
-    verantwoordelijke: 'Backend Dev'
-  },
-  {
-    id: 5,
-    faseId: 1,
-    titel: 'RLS security audit',
-    beschrijving: 'Row Level Security policies valideren',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Security'
-  },
-  // Fase 2
-  {
-    id: 6,
-    faseId: 2,
-    titel: 'Dashboard view',
-    beschrijving: 'Real-time overzicht van activiteit',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Frontend Dev'
-  },
-  {
-    id: 7,
-    faseId: 2,
-    titel: 'Patronen view',
-    beschrijving: 'Dagelijkse activiteitspatronen visualisatie',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Frontend Dev'
-  },
-  {
-    id: 8,
-    faseId: 2,
-    titel: 'Analyse view',
-    beschrijving: 'Baseline vergelijking en afwijkingen',
-    status: 'actief',
-    prioriteit: 'medium',
-    verantwoordelijke: 'Frontend Dev'
-  },
-  {
-    id: 9,
-    faseId: 2,
-    titel: 'Consistentie fixes',
-    beschrijving: 'Uniforme berekeningen over alle views',
-    status: 'voltooid',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Frontend Dev'
-  },
-  // Fase 3
-  {
-    id: 10,
-    faseId: 3,
-    titel: 'Baseline learning algoritme',
-    beschrijving: 'Automatisch leren van normale patronen',
-    status: 'gepland',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'ML Engineer'
-  },
-  {
-    id: 11,
-    faseId: 3,
-    titel: 'Anomalie detectie',
-    beschrijving: 'Afwijkingen van normale patronen signaleren',
-    status: 'gepland',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'ML Engineer'
-  },
-  // Fase 4
-  {
-    id: 12,
-    faseId: 4,
-    titel: 'Push notificaties',
-    beschrijving: 'Alerts naar mantelzorgers',
-    status: 'gepland',
-    prioriteit: 'hoog',
-    verantwoordelijke: 'Backend Dev'
-  },
-  {
-    id: 13,
-    faseId: 4,
-    titel: 'Email integratie',
-    beschrijving: 'Dagelijkse/wekelijkse rapportages',
-    status: 'gepland',
-    prioriteit: 'medium',
-    verantwoordelijke: 'Backend Dev'
-  },
-  // Fase 5
-  {
-    id: 14,
-    faseId: 5,
-    titel: 'Multi-tenant architectuur',
-    beschrijving: 'Meerdere organisaties ondersteunen',
-    status: 'gepland',
-    prioriteit: 'medium',
-    verantwoordelijke: 'Architect'
-  },
-  {
-    id: 15,
-    faseId: 5,
-    titel: 'Admin dashboard',
-    beschrijving: 'Beheer interface voor organisaties',
-    status: 'gepland',
-    prioriteit: 'medium',
-    verantwoordelijke: 'Frontend Dev'
-  }
-]
-
-export const budget = {
-  totaal: 50000,
-  uitgegeven: 18500,
-  categorieen: [
+  phases: [
     {
-      naam: 'Development',
-      budget: 30000,
-      uitgegeven: 12000,
-      items: [
-        { naam: 'Frontend ontwikkeling', bedrag: 6000 },
-        { naam: 'Backend ontwikkeling', bedrag: 4000 },
-        { naam: 'Database setup', bedrag: 2000 }
-      ]
+      id: 0,
+      name: "Foundation",
+      description: "Testopstelling, data verzamelen, algoritme verbeteren",
+      status: "actief",
+      budget: 500,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "0-1", description: "Testopstelling draait stabiel 7+ dagen zonder handmatige interventie", completed: false },
+        { id: "0-2", description: "Minimaal 2 weken data verzameld van testhuishouden", completed: false },
+        { id: "0-3", description: "Wakker/slaap detectie werkt met >80% accuraatheid (handmatig gevalideerd)", completed: false },
+        { id: "0-4", description: "Algoritme draait real-time, niet alleen op historische data", completed: false },
+        { id: "0-5", description: "Architectuurdocumentatie basis staat (dataflow, componenten)", completed: false },
+        { id: "0-6", description: "Domeinnaam geregistreerd", completed: false }
+      ],
+      noGoAction: "Meer itereren op hardware/software stabiliteit voordat we uitbreiden"
     },
     {
-      naam: 'Infrastructuur',
-      budget: 10000,
-      uitgegeven: 3500,
-      items: [
-        { naam: 'Supabase hosting', bedrag: 2000 },
-        { naam: 'Vercel hosting', bedrag: 500 },
-        { naam: 'Domein en SSL', bedrag: 500 },
-        { naam: 'Monitoring tools', bedrag: 500 }
-      ]
+      id: 1,
+      name: "Hardware Expansion",
+      description: "Meerdere device types ondersteunen",
+      status: "niet gestart",
+      budget: 1000,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "1-1", description: "Minimaal 3 verschillende sensor-types succesvol geïntegreerd (motion, contact, light)", completed: false },
+        { id: "1-2", description: "Devices van minimaal 2 verschillende fabrikanten werken", completed: false },
+        { id: "1-3", description: "Onboarding nieuwe device duurt <30 minuten", completed: false },
+        { id: "1-4", description: "Geen vendor lock-in: documentatie hoe nieuw device toe te voegen", completed: false }
+      ],
+      noGoAction: "Terugschalen naar 1 device type, eerst stabiliteit"
     },
     {
-      naam: 'Hardware',
+      id: 2,
+      name: "WhatsApp Integratie",
+      description: "Notificaties naar mantelzorgers via WhatsApp",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "2-1", description: "WhatsApp Business API of Twilio integratie werkend", completed: false },
+        { id: "2-2", description: "Alerts komen binnen 2 minuten aan op telefoon", completed: false },
+        { id: "2-3", description: "Mantelzorger kan via WhatsApp bevestigen (acknowledge alert)", completed: false },
+        { id: "2-4", description: "Getest met 3+ mantelzorgers (niet-technisch)", completed: false },
+        { id: "2-5", description: "Kosten per bericht in kaart gebracht", completed: false }
+      ],
+      noGoAction: "Alternatief kanaal onderzoeken (SMS, e-mail, of toch app)"
+    },
+    {
+      id: 3,
+      name: "Alert & UX",
+      description: "Alert-logica, configuratie per bewoner, onboarding flow",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "3-1", description: "Alert-regels configureerbaar per bewoner (bijv. 'geen activiteit na 10:00')", completed: false },
+        { id: "3-2", description: "False positive rate <20% over testperiode van 2 weken", completed: false },
+        { id: "3-3", description: "Onboarding flow getest met 2+ niet-technische mensen", completed: false },
+        { id: "3-4", description: "Snooze functie werkt (tijdelijk alerts uitzetten)", completed: false },
+        { id: "3-5", description: "Baseline learning periode geïmplementeerd (systeem leert normaal patroon)", completed: false }
+      ],
+      noGoAction: "UX nog niet intuïtief genoeg voor doelgroep"
+    },
+    {
+      id: 4,
+      name: "Compliance",
+      description: "AVG, juridisch, aansprakelijkheid",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "4-1", description: "Privacy policy geschreven en juridisch gereviewed", completed: false },
+        { id: "4-2", description: "Verwerkersovereenkomst template klaar", completed: false },
+        { id: "4-3", description: "Algemene voorwaarden opgesteld", completed: false },
+        { id: "4-4", description: "Data retention policy bepaald (hoe lang bewaren we data?)", completed: false },
+        { id: "4-5", description: "Aansprakelijkheid afgedekt (disclaimer + verzekering verkend)", completed: false },
+        { id: "4-6", description: "AVG register van verwerkingen aangelegd", completed: false },
+        { id: "4-7", description: "Besluit: BV nodig voor pilot? (waarschijnlijk niet)", completed: false }
+      ],
+      noGoAction: "Niet starten met echte kwetsbare mensen zonder juridische basis"
+    },
+    {
+      id: 5,
+      name: "Pilot",
+      description: "Gratis plaatsing bij kwetsbare mensen, feedback verzamelen",
+      status: "niet gestart",
       budget: 5000,
-      uitgegeven: 2000,
-      items: [
-        { naam: 'Hue Bridge test units', bedrag: 500 },
-        { naam: 'Motion sensors', bedrag: 1000 },
-        { naam: 'Contact sensors', bedrag: 500 }
-      ]
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "5-1", description: "Minimaal 5 huishoudens actief gedurende 4+ weken", completed: false },
+        { id: "5-2", description: "NPS score >7 van mantelzorgers", completed: false },
+        { id: "5-3", description: "Minimaal 1 'echte' alert succesvol afgehandeld", completed: false },
+        { id: "5-4", description: "Installatie door niet-teamlid mogelijk (test schaalbaarheid)", completed: false },
+        { id: "5-5", description: "Churn: geen pilot-deelnemer gestopt vanwege product-problemen", completed: false },
+        { id: "5-6", description: "Verzameld: 3+ testimonials of quotes", completed: false }
+      ],
+      noGoAction: "Product nog niet klaar voor betalende klanten"
     },
     {
-      naam: 'Overig',
-      budget: 5000,
-      uitgegeven: 1000,
-      items: [
-        { naam: 'Documentatie', bedrag: 500 },
-        { naam: 'Training', bedrag: 500 }
-      ]
+      id: 6,
+      name: "Iteration",
+      description: "Verwerken pilot-learnings, product aanscherpen",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "6-1", description: "Alle kritieke bugs uit pilot opgelost", completed: false },
+        { id: "6-2", description: "Top 3 feature requests uit pilot geëvalueerd (build/park/kill)", completed: false },
+        { id: "6-3", description: "Algoritme verbeterd op basis van pilot-data", completed: false },
+        { id: "6-4", description: "Installatie-tijd teruggebracht naar <1 uur", completed: false },
+        { id: "6-5", description: "Support-proces gedefinieerd (wat als iets kapot gaat?)", completed: false },
+        { id: "6-6", description: "Besluit: native app nodig of WhatsApp voldoende?", completed: false }
+      ],
+      noGoAction: "Nog een iteratieronde nodig"
+    },
+    {
+      id: 7,
+      name: "Go-to-Market",
+      description: "Pricing, propositie, website, BV oprichten",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "7-1", description: "Pricing model bepaald en gevalideerd met 5+ potentiële klanten", completed: false },
+        { id: "7-2", description: "Landingspagina live met duidelijke propositie", completed: false },
+        { id: "7-3", description: "Propositie uitgewerkt voor minimaal 2 doelgroepen (mantelzorger, thuiszorg)", completed: false },
+        { id: "7-4", description: "Bestelflow/aanmeldflow werkt end-to-end", completed: false },
+        { id: "7-5", description: "Unit economics berekend (CAC, LTV, margin op hardware)", completed: false },
+        { id: "7-6", description: "Merknaam GerustThuis geregistreerd", completed: false },
+        { id: "7-7", description: "BV opgericht of activiteiten afgesplitst van BoostiX", completed: false },
+        { id: "7-8", description: "IP overdracht van BoostiX naar GerustThuis vastgelegd (indien van toepassing)", completed: false }
+      ],
+      noGoAction: "Nog geen marketing euro's uitgeven"
+    },
+    {
+      id: 8,
+      name: "Marketing",
+      description: "Bekendheid genereren, content, partnerships",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "8-1", description: "Eerste 100 website bezoekers via organisch/paid", completed: false },
+        { id: "8-2", description: "Minimaal 10 leads (aanmeldingen/contactverzoeken)", completed: false },
+        { id: "8-3", description: "Cost per lead <€50", completed: false },
+        { id: "8-4", description: "1+ partnership gesprek met zorgorganisatie of branchevereniging (bijv. ActiZ)", completed: false },
+        { id: "8-5", description: "Content aanwezig: minimaal 3 blogposts/cases/video's", completed: false }
+      ],
+      noGoAction: "Boodschap resoneert niet, terug naar propositie"
+    },
+    {
+      id: 9,
+      name: "Sales",
+      description: "Kanalen inrichten, eerste betalende klanten",
+      status: "niet gestart",
+      budget: null,
+      spent: 0,
+      goNoGoCriteria: [
+        { id: "9-1", description: "Eerste 3 betalende klanten", completed: false },
+        { id: "9-2", description: "Salesproces gedocumenteerd (van lead tot klant)", completed: false },
+        { id: "9-3", description: "Minimaal 1 kanaal bewezen (direct, via partner, via zorginstelling)", completed: false },
+        { id: "9-4", description: "Churn eerste 3 maanden: 0", completed: false },
+        { id: "9-5", description: "Upsell/referral: minimaal 1 klant via mond-tot-mond", completed: false }
+      ],
+      noGoAction: "Product-market fit nog niet bewezen, terug naar pilot of iteratie"
     }
-  ]
+  ],
+  tickets: []
 }
-
-export const planning = [
-  { maand: 'Jan 2026', fasen: [1], milestones: ['Database schema', 'Hue integratie'] },
-  { maand: 'Feb 2026', fasen: [1, 2], milestones: ['Dashboard MVP', 'Sensor health'] },
-  { maand: 'Mrt 2026', fasen: [1, 2], milestones: ['Patronen view', 'Security audit'] },
-  { maand: 'Apr 2026', fasen: [2, 3], milestones: ['Analyse view', 'Baseline learning'] },
-  { maand: 'Mei 2026', fasen: [3, 4], milestones: ['Anomalie detectie', 'Push notificaties'] },
-  { maand: 'Jun 2026', fasen: [3, 4], milestones: ['ML fine-tuning', 'Email rapportages'] },
-  { maand: 'Jul 2026', fasen: [4, 5], milestones: ['Integratie tests', 'Multi-tenant basis'] },
-  { maand: 'Aug 2026', fasen: [5], milestones: ['Admin dashboard', 'Documentatie'] },
-  { maand: 'Sep 2026', fasen: [5], milestones: ['Beta release', 'Gebruikerstests'] }
-]

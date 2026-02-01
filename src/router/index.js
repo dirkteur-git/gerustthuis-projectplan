@@ -3,8 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('../views/Home.vue')
+    name: 'Dashboard',
+    component: () => import('../views/Dashboard.vue')
   },
   {
     path: '/fasen',
@@ -12,19 +12,19 @@ const routes = [
     component: () => import('../views/Fasen.vue')
   },
   {
-    path: '/acties',
-    name: 'Acties',
-    component: () => import('../views/Acties.vue')
+    path: '/fasen/:id',
+    name: 'FaseDetail',
+    component: () => import('../views/FaseDetail.vue')
+  },
+  {
+    path: '/tickets',
+    name: 'Tickets',
+    component: () => import('../views/Tickets.vue')
   },
   {
     path: '/planning',
     name: 'Planning',
     component: () => import('../views/Planning.vue')
-  },
-  {
-    path: '/budget',
-    name: 'Budget',
-    component: () => import('../views/Budget.vue')
   }
 ]
 
