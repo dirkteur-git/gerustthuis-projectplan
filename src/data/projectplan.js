@@ -97,14 +97,14 @@ export const initialData = {
     // Epic: Website
     { id: 110, ticketNumber: "TM-10", title: "Branding doorvoeren op website + portaal (sage palet, DM Serif + DM Sans, logo)", phaseId: 1, epic: "Website", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
     { id: 111, ticketNumber: "TM-11", title: "Landingspagina herschrijven met StoryBrand structuur", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
-    { id: 112, ticketNumber: "TM-12", title: "Wachtlijst-formulier bouwen en testen", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
-    { id: 113, ticketNumber: "TM-13", title: "Double opt-in flow bouwen (AVG-verplicht)", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
-    { id: 114, ticketNumber: "TM-14", title: "Bedankpagina na aanmelding", phaseId: 1, epic: "Website", status: "todo", priority: "should", dependsOn: [], blockedBy: [] },
+    { id: 112, ticketNumber: "TM-12", title: "Wachtlijst-formulier bouwen en testen (Supabase + Edge Function)", phaseId: 1, epic: "Website", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
+    { id: 113, ticketNumber: "TM-13", title: "Double opt-in flow bouwen (AVG-verplicht)", phaseId: 1, epic: "Website", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
+    { id: 114, ticketNumber: "TM-14", title: "Bevestigingspagina na aanmelding", phaseId: 1, epic: "Website", status: "done", priority: "should", dependsOn: [], blockedBy: [] },
     { id: 115, ticketNumber: "TM-15", title: "Responsive mobiel + tablet", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
     { id: 116, ticketNumber: "TM-16", title: "Testen op echte devices", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
     { id: 117, ticketNumber: "TM-17", title: "KVK-nummer en handelsnaam in footer", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
     { id: 118, ticketNumber: "TM-18", title: "Laadtijd onder 3 seconden", phaseId: 1, epic: "Website", status: "todo", priority: "should", dependsOn: [], blockedBy: [] },
-    { id: 119, ticketNumber: "TM-19", title: "Welkomstmail automatisering instellen", phaseId: 1, epic: "Website", status: "todo", priority: "should", dependsOn: [], blockedBy: [] },
+    { id: 119, ticketNumber: "TM-19", title: "Welkomstmail automatisering instellen (Zoho SMTP via Edge Function)", phaseId: 1, epic: "Website", status: "in-progress", priority: "should", dependsOn: [], blockedBy: [] },
 
     // Epic: SEO & Tracking
     { id: 120, ticketNumber: "TM-20", title: "Cookiebot installeren en configureren", phaseId: 1, epic: "SEO & Tracking", status: "todo", priority: "must", dependsOn: [], blockedBy: [] },
@@ -212,7 +212,8 @@ export const initialData = {
 
     // Epic: Auth & Accounts (Fase 1 — Foundation)
     { id: 160, ticketNumber: "TM-60", title: "Wachtwoord vergeten flow in portaal login", phaseId: 1, epic: "Foundation", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
-    { id: 161, ticketNumber: "TM-61", title: "2-staps email verificatie bij account aanmaken", phaseId: 1, epic: "Foundation", status: "done", priority: "must", dependsOn: [], blockedBy: [] }
+    { id: 161, ticketNumber: "TM-61", title: "2-staps email verificatie bij account aanmaken", phaseId: 1, epic: "Foundation", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
+    { id: 162, ticketNumber: "TM-62", title: "Zoho secrets configureren in Supabase Edge Functions", phaseId: 1, epic: "Website", status: "todo", priority: "must", dependsOn: [], blockedBy: [], description: "Supabase Dashboard → Settings → Edge Functions → Secrets. Voeg toe: ZOHO_MAIL_ACCESS_TOKEN, ZOHO_MAIL_ACCOUNT_ID, ZOHO_CAMPAIGNS_CLIENT_ID, ZOHO_CAMPAIGNS_CLIENT_SECRET, ZOHO_CAMPAIGNS_REFRESH_TOKEN, ZOHO_CAMPAIGNS_LIST_KEY, SITE_URL (https://gerustthuis.nl). Zonder deze secrets werkt de waitlist INSERT + rate limiting al, maar worden bevestigingsmail en Zoho Campaigns sync overgeslagen." }
   ],
-  nextTicketNumber: 62
+  nextTicketNumber: 63
 }
