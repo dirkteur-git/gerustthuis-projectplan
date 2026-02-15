@@ -1,6 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { supabase, isAllowedEmail } from '../services/supabase'
 
 const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue'),
+    meta: { requiresAuth: false }
+  },
   {
     path: '/',
     name: 'Home',
@@ -51,6 +58,28 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.meta.requiresAuth !== false
+
+  if (requiresAuth) {
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session || !isAllowedEmail(session.user?.email)) {
+      if (session) await supabase.auth.signOut()
+      return next('/login')
+    }
+  }
+
+  if (to.path === '/login') {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session && isAllowedEmail(session.user?.email)) {
+      return next('/')
+    }
+  }
+
+  next()
 })
 
 export default router

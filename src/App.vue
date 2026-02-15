@@ -1,23 +1,44 @@
 <script setup>
-import { computed } from 'vue'
-import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { exportData } from './stores/projectStore.js'
+import { supabase, signOut } from './services/supabase'
 
 const route = useRoute()
+const router = useRouter()
+const user = ref(null)
 
+const isLoginPage = computed(() => route.path === '/login')
 const isHome = computed(() => route.path === '/')
-
 const isRoadmapSection = computed(() =>
   ['/roadmap', '/fasen', '/tickets', '/planning'].includes(route.path) ||
   route.path.startsWith('/fasen/')
 )
+
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  user.value = session?.user || null
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    user.value = session?.user || null
+  })
+})
+
+async function handleLogout() {
+  await signOut()
+  router.push('/login')
+}
 </script>
 
 <template>
-  <div class="app">
+  <!-- Login page: full screen, geen navigatie -->
+  <RouterView v-if="isLoginPage" />
+
+  <!-- App layout met navigatie -->
+  <div v-else class="app">
     <header class="header" v-if="!isHome">
       <div class="header-content">
-        <RouterLink to="/" class="back-home">← Home</RouterLink>
+        <RouterLink to="/" class="back-home">&larr; Home</RouterLink>
 
         <nav v-if="isRoadmapSection" class="nav">
           <RouterLink to="/roadmap" class="nav-link" exact-active-class="active">Overzicht</RouterLink>
@@ -26,15 +47,29 @@ const isRoadmapSection = computed(() =>
           <RouterLink to="/planning" class="nav-link">Tijdlijn</RouterLink>
         </nav>
 
-        <button v-if="isRoadmapSection" class="export-btn" @click="exportData" title="Exporteer als JSON">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </button>
+        <div class="header-actions">
+          <button v-if="isRoadmapSection" class="export-btn" @click="exportData" title="Exporteer als JSON">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+          <button class="logout-btn" @click="handleLogout" title="Uitloggen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
+
+    <!-- Home page: toon logout knop apart -->
+    <div v-if="isHome" class="home-logout">
+      <button class="logout-btn-text" @click="handleLogout">Uitloggen</button>
+    </div>
 
     <main class="main" :class="{ 'main-home': isHome }">
       <RouterView />
@@ -102,7 +137,15 @@ const isRoadmapSection = computed(() =>
   color: white;
 }
 
-.export-btn {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.export-btn,
+.logout-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
@@ -115,8 +158,32 @@ const isRoadmapSection = computed(() =>
   transition: background 0.2s;
 }
 
-.export-btn:hover {
+.export-btn:hover,
+.logout-btn:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.home-logout {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 10;
+}
+
+.logout-btn-text {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn-text:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .main {
