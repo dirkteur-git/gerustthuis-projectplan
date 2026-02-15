@@ -1,7 +1,7 @@
 import { reactive, watch } from 'vue'
 import { initialData } from '../data/projectplan.js'
 
-const STORAGE_KEY = 'gerustthuis-projectplan'
+const STORAGE_KEY = 'gerustthuis-admin'
 
 // Load from localStorage or use initial data
 function loadData() {
@@ -281,7 +281,7 @@ export function exportData() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `gerustthuis-projectplan-${new Date().toISOString().split('T')[0]}.json`
+  a.download = `gerustthuis-admin-${new Date().toISOString().split('T')[0]}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
