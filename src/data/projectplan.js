@@ -114,7 +114,7 @@ export const initialData = {
     { id: 124, ticketNumber: "TM-24", title: "Meta title en description op alle pagina's", phaseId: 1, epic: "SEO & Tracking", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
     { id: 125, ticketNumber: "TM-25", title: "Open Graph tags instellen (social sharing)", phaseId: 1, epic: "SEO & Tracking", status: "done", priority: "must", dependsOn: [], blockedBy: [] },
     { id: 126, ticketNumber: "TM-26", title: "Favicon en app-icoon instellen", phaseId: 1, epic: "SEO & Tracking", status: "done", priority: "should", dependsOn: [], blockedBy: [] },
-    { id: 127, ticketNumber: "TM-27", title: "Sitemap.xml + Google Search Console", phaseId: 1, epic: "SEO & Tracking", status: "in-progress", priority: "should", dependsOn: [], blockedBy: [] },
+    { id: 127, ticketNumber: "TM-27", title: "Sitemap.xml + Google Search Console", phaseId: 1, epic: "SEO & Tracking", status: "done", priority: "should", dependsOn: [], blockedBy: [] },
     { id: 128, ticketNumber: "TM-28", title: "Schema.org structured data", phaseId: 1, epic: "SEO & Tracking", status: "done", priority: "nice", dependsOn: [], blockedBy: [] },
     { id: 129, ticketNumber: "TM-29", title: "WhatsApp preview testen", phaseId: 1, epic: "SEO & Tracking", status: "in-progress", priority: "should", dependsOn: [], blockedBy: [] },
 
