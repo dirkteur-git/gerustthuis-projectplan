@@ -1,17 +1,29 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { store, addTicket, updateTicket, deleteTicket, addDependency, removeDependency, getTicketById } from '../stores/projectStore.js'
+import { store, addTicket, updateTicket, deleteTicket, addDependency, removeDependency, getTicketById, getEpicsByPhase, addComment, deleteComment, getLabelById } from '../stores/projectStore.js'
 
 const route = useRoute()
 
 const filterPhase = ref(route.query.phase ? parseInt(route.query.phase) : 'all')
 const filterPriority = ref(route.query.priority || 'all')
+const filterEpic = ref('all')
+const filterLabel = ref('all')
+
+// Available epics based on selected phase
+const availableEpics = computed(() => {
+  if (filterPhase.value === 'all') {
+    return [...new Set(store.tickets.map(t => t.epic).filter(Boolean))]
+  }
+  return getEpicsByPhase(filterPhase.value)
+})
 
 const filteredTickets = computed(() => {
   return store.tickets.filter(t => {
     if (filterPhase.value !== 'all' && t.phaseId !== filterPhase.value) return false
     if (filterPriority.value !== 'all' && t.priority !== filterPriority.value) return false
+    if (filterEpic.value !== 'all' && t.epic !== filterEpic.value) return false
+    if (filterLabel.value !== 'all' && (!t.labels || !t.labels.includes(filterLabel.value))) return false
     return true
   })
 })
@@ -132,6 +144,44 @@ function submitEditTicket() {
   editingTicket.value = null
 }
 
+const newCommentText = ref('')
+
+function submitComment() {
+  if (!newCommentText.value.trim() || !editingTicket.value) return
+  addComment(editingTicket.value.id, newCommentText.value.trim())
+  // Refresh editing ticket to show new comment
+  editingTicket.value = { ...getTicketById(editingTicket.value.id) }
+  newCommentText.value = ''
+}
+
+function removeComment(commentId) {
+  if (!editingTicket.value) return
+  deleteComment(editingTicket.value.id, commentId)
+  editingTicket.value = { ...getTicketById(editingTicket.value.id) }
+}
+
+function formatCommentDate(dateStr) {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
+// Labels
+function toggleLabel(labelId) {
+  if (!editingTicket.value.labels) {
+    editingTicket.value.labels = []
+  }
+  const idx = editingTicket.value.labels.indexOf(labelId)
+  if (idx === -1) {
+    editingTicket.value.labels.push(labelId)
+  } else {
+    editingTicket.value.labels.splice(idx, 1)
+  }
+}
+
+function getLabel(labelId) {
+  return getLabelById(labelId)
+}
+
 function confirmDeleteTicket() {
   if (confirm('Weet je zeker dat je dit ticket wilt verwijderen?')) {
     deleteTicket(editingTicket.value.id)
@@ -159,11 +209,20 @@ function getPhaseName(phaseId) {
     <!-- Filters -->
     <div class="filters">
       <div class="filter-group">
-        <label>Fase</label>
-        <select v-model="filterPhase">
-          <option value="all">Alle fasen</option>
+        <label>Objective</label>
+        <select v-model="filterPhase" @change="filterEpic = 'all'">
+          <option value="all">Alle objectives</option>
           <option v-for="phase in store.phases" :key="phase.id" :value="phase.id">
             {{ phase.id }}. {{ phase.name }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Epic</label>
+        <select v-model="filterEpic">
+          <option value="all">Alle epics</option>
+          <option v-for="epic in availableEpics" :key="epic" :value="epic">
+            {{ epic }}
           </option>
         </select>
       </div>
@@ -174,6 +233,15 @@ function getPhaseName(phaseId) {
           <option value="must">Must have</option>
           <option value="should">Should have</option>
           <option value="nice">Nice to have</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Label</label>
+        <select v-model="filterLabel">
+          <option value="all">Alle labels</option>
+          <option v-for="label in store.labels" :key="label.id" :value="label.id">
+            {{ label.name }}
+          </option>
         </select>
       </div>
     </div>
@@ -202,9 +270,18 @@ function getPhaseName(phaseId) {
             <div class="ticket-header">
               <span class="ticket-number">{{ ticket.ticketNumber }}</span>
               <span class="priority-badge" :class="ticket.priority">{{ ticket.priority }}</span>
+              <span v-if="ticket.epic" class="epic-tag">{{ ticket.epic }}</span>
               <span class="phase-tag">{{ ticket.phaseId }}</span>
             </div>
             <h4>{{ ticket.title }}</h4>
+            <div v-if="ticket.labels && ticket.labels.length" class="ticket-labels">
+              <span
+                v-for="labelId in ticket.labels"
+                :key="labelId"
+                class="label-badge"
+                :style="{ background: getLabel(labelId)?.color + '20', color: getLabel(labelId)?.color }"
+              >{{ getLabel(labelId)?.name }}</span>
+            </div>
             <p v-if="ticket.description">{{ ticket.description }}</p>
             <div class="ticket-meta">
               <span v-if="ticket.estimatedHours">{{ ticket.estimatedHours }}u</span>
@@ -242,9 +319,18 @@ function getPhaseName(phaseId) {
             <div class="ticket-header">
               <span class="ticket-number">{{ ticket.ticketNumber }}</span>
               <span class="priority-badge" :class="ticket.priority">{{ ticket.priority }}</span>
+              <span v-if="ticket.epic" class="epic-tag">{{ ticket.epic }}</span>
               <span class="phase-tag">{{ ticket.phaseId }}</span>
             </div>
             <h4>{{ ticket.title }}</h4>
+            <div v-if="ticket.labels && ticket.labels.length" class="ticket-labels">
+              <span
+                v-for="labelId in ticket.labels"
+                :key="labelId"
+                class="label-badge"
+                :style="{ background: getLabel(labelId)?.color + '20', color: getLabel(labelId)?.color }"
+              >{{ getLabel(labelId)?.name }}</span>
+            </div>
             <p v-if="ticket.description">{{ ticket.description }}</p>
             <div class="ticket-meta">
               <span v-if="ticket.estimatedHours">{{ ticket.estimatedHours }}u</span>
@@ -282,9 +368,18 @@ function getPhaseName(phaseId) {
             <div class="ticket-header">
               <span class="ticket-number">{{ ticket.ticketNumber }}</span>
               <span class="priority-badge" :class="ticket.priority">{{ ticket.priority }}</span>
+              <span v-if="ticket.epic" class="epic-tag">{{ ticket.epic }}</span>
               <span class="phase-tag">{{ ticket.phaseId }}</span>
             </div>
             <h4>{{ ticket.title }}</h4>
+            <div v-if="ticket.labels && ticket.labels.length" class="ticket-labels">
+              <span
+                v-for="labelId in ticket.labels"
+                :key="labelId"
+                class="label-badge"
+                :style="{ background: getLabel(labelId)?.color + '20', color: getLabel(labelId)?.color }"
+              >{{ getLabel(labelId)?.name }}</span>
+            </div>
             <p v-if="ticket.description">{{ ticket.description }}</p>
           </div>
         </div>
@@ -305,7 +400,7 @@ function getPhaseName(phaseId) {
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Fase</label>
+            <label>Objective</label>
             <select v-model="newTicket.phaseId">
               <option v-for="phase in store.phases" :key="phase.id" :value="phase.id">
                 {{ phase.id }}. {{ phase.name }}
@@ -362,7 +457,7 @@ function getPhaseName(phaseId) {
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Fase</label>
+            <label>Objective</label>
             <select v-model="editingTicket.phaseId">
               <option v-for="phase in store.phases" :key="phase.id" :value="phase.id">
                 {{ phase.id }}. {{ phase.name }}
@@ -435,6 +530,66 @@ function getPhaseName(phaseId) {
               <span class="dep-ticket-number">{{ getTicketInfo(blockedId)?.ticketNumber }}</span>
               <span class="dep-ticket-title">{{ getTicketInfo(blockedId)?.title }}</span>
             </div>
+          </div>
+        </div>
+
+        <!-- Labels -->
+        <div class="labels-section">
+          <label>Labels</label>
+          <div class="label-options">
+            <button
+              v-for="label in store.labels"
+              :key="label.id"
+              type="button"
+              class="label-toggle"
+              :class="{ active: editingTicket.labels?.includes(label.id) }"
+              :style="{
+                '--label-color': label.color,
+                background: editingTicket.labels?.includes(label.id) ? label.color + '20' : 'transparent',
+                color: editingTicket.labels?.includes(label.id) ? label.color : 'var(--color-text-secondary)',
+                borderColor: editingTicket.labels?.includes(label.id) ? label.color : 'var(--color-border)'
+              }"
+              @click="toggleLabel(label.id)"
+            >
+              {{ label.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Value & Acceptance Criteria -->
+        <div class="value-section">
+          <div class="form-group">
+            <label>Waarde (waarom dit ticket?)</label>
+            <textarea v-model="editingTicket.value" rows="2" placeholder="Wat levert dit op?"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Acceptance Criteria</label>
+            <textarea v-model="editingTicket.acceptanceCriteria" rows="3" placeholder="Wanneer is dit ticket klaar? (meetbaar)"></textarea>
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section">
+          <label>Comments ({{ editingTicket.comments?.length || 0 }})</label>
+          <div v-if="editingTicket.comments && editingTicket.comments.length" class="comment-list">
+            <div v-for="comment in editingTicket.comments" :key="comment.id" class="comment-item">
+              <div class="comment-header">
+                <span class="comment-date">{{ formatCommentDate(comment.createdAt) }}</span>
+                <button type="button" class="remove-comment" @click="removeComment(comment.id)">×</button>
+              </div>
+              <p class="comment-text">{{ comment.text }}</p>
+            </div>
+          </div>
+          <div class="add-comment">
+            <textarea
+              v-model="newCommentText"
+              rows="2"
+              placeholder="Voeg een opmerking toe..."
+              @keydown.ctrl.enter="submitComment"
+            ></textarea>
+            <button type="button" class="comment-btn" @click="submitComment" :disabled="!newCommentText.trim()">
+              Plaats
+            </button>
           </div>
         </div>
 
@@ -615,6 +770,35 @@ function getPhaseName(phaseId) {
 .priority-badge.must { background: #fee2e2; color: #dc2626; }
 .priority-badge.should { background: #fef3c7; color: #d97706; }
 .priority-badge.nice { background: #d1fae5; color: #059669; }
+
+.epic-tag {
+  font-size: 0.65rem;
+  color: #7c3aed;
+  background: #ede9fe;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ticket Labels */
+.ticket-labels {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.label-badge {
+  font-size: 0.65rem;
+  padding: 0.125rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
 
 .phase-tag {
   font-size: 0.7rem;
@@ -859,6 +1043,170 @@ function getPhaseName(phaseId) {
   font-size: 0.8rem;
   background: white;
   color: var(--color-text-secondary);
+}
+
+/* Labels Section */
+.labels-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-background);
+  border-radius: 8px;
+}
+
+.labels-section > label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.label-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.label-toggle {
+  font-size: 0.8rem;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+
+.label-toggle:hover {
+  border-color: var(--label-color, var(--color-primary));
+}
+
+/* Value & Acceptance Criteria */
+.value-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-background);
+  border-radius: 8px;
+}
+
+.value-section .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.value-section .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.value-section label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.value-section textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  resize: vertical;
+}
+
+/* Comments */
+.comments-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-background);
+  border-radius: 8px;
+}
+
+.comments-section > label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.comment-item {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.comment-date {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
+.remove-comment {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.remove-comment:hover {
+  color: #dc2626;
+}
+
+.comment-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.add-comment {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.add-comment textarea {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  resize: none;
+}
+
+.comment-btn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.comment-btn:disabled {
+  background: var(--color-border);
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

@@ -5,6 +5,7 @@ import {
   store,
   getPhaseById,
   getTicketsByPhase,
+  getEpicsByPhase,
   toggleCriterion,
   updatePhase,
   recordGoNoGoDecision,
@@ -20,7 +21,40 @@ const router = useRouter()
 const phaseId = computed(() => parseInt(route.params.id))
 const phase = computed(() => getPhaseById(phaseId.value))
 const tickets = computed(() => getTicketsByPhase(phaseId.value))
+const epics = computed(() => getEpicsByPhase(phaseId.value))
 const phaseSpent = computed(() => getPhaseSpent(phaseId.value))
+
+// Group tickets by epic
+const ticketsByEpic = computed(() => {
+  const grouped = {}
+  epics.value.forEach(epic => {
+    grouped[epic] = tickets.value.filter(t => t.epic === epic)
+  })
+  // Tickets without epic
+  const noEpic = tickets.value.filter(t => !t.epic)
+  if (noEpic.length > 0) {
+    grouped['Overig'] = noEpic
+  }
+  return grouped
+})
+
+// Collapsed epic sections
+const collapsedEpics = ref(new Set())
+
+function toggleEpic(epic) {
+  if (collapsedEpics.value.has(epic)) {
+    collapsedEpics.value.delete(epic)
+  } else {
+    collapsedEpics.value.add(epic)
+  }
+}
+
+function getEpicProgress(epic) {
+  const epicTickets = ticketsByEpic.value[epic] || []
+  if (epicTickets.length === 0) return 0
+  const done = epicTickets.filter(t => t.status === 'done').length
+  return Math.round((done / epicTickets.length) * 100)
+}
 
 const showGoNoGoModal = ref(false)
 const goNoGoDecision = ref('go')
@@ -35,6 +69,7 @@ const newPurchase = ref({
 
 const showQuickAdd = ref(false)
 const quickAddTitle = ref('')
+const quickAddEpic = ref('')
 
 const allCriteriaComplete = computed(() => {
   if (!phase.value) return false
@@ -73,11 +108,17 @@ function quickAddTicket() {
   addTicket({
     title: quickAddTitle.value,
     phaseId: phaseId.value,
+    epic: quickAddEpic.value || null,
     status: 'todo',
     priority: 'should'
   })
   quickAddTitle.value = ''
+  quickAddEpic.value = ''
   showQuickAdd.value = false
+}
+
+function goToTicket(ticket) {
+  router.push(`/tickets?phase=${phaseId.value}`)
 }
 
 function formatCurrency(amount) {
@@ -87,6 +128,11 @@ function formatCurrency(amount) {
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('nl-NL')
+}
+
+function formatTargetDate(dateStr) {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleDateString('nl-NL', { year: 'numeric', month: 'long' })
 }
 
 function getStatusClass(status) {
@@ -100,13 +146,13 @@ function getStatusClass(status) {
 </script>
 
 <template>
-  <div v-if="phase" class="fase-detail">
+  <div v-if="phase" class="objective-detail">
     <!-- Header -->
     <div class="header">
-      <RouterLink to="/fasen" class="back-link">Alle fasen</RouterLink>
+      <RouterLink to="/fasen" class="back-link">Alle objectives</RouterLink>
       <div class="header-main">
         <div class="header-info">
-          <span class="fase-number">Fase {{ phase.id }}</span>
+          <span class="objective-number">Objective {{ phase.id }}</span>
           <h1>{{ phase.name }}</h1>
           <p>{{ phase.description }}</p>
         </div>
@@ -115,6 +161,47 @@ function getStatusClass(status) {
         </span>
       </div>
     </div>
+
+    <!-- Objective Meta: Goal, Date, Measurement -->
+    <section class="objective-meta">
+      <div class="meta-item">
+        <span class="meta-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l3 3"/>
+          </svg>
+        </span>
+        <div class="meta-content">
+          <span class="meta-label">Doel</span>
+          <span class="meta-value">{{ phase.goal || '-' }}</span>
+        </div>
+      </div>
+      <div class="meta-item">
+        <span class="meta-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        <div class="meta-content">
+          <span class="meta-label">Deadline</span>
+          <span class="meta-value">{{ formatTargetDate(phase.targetDate) }}</span>
+        </div>
+      </div>
+      <div class="meta-item">
+        <span class="meta-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
+        <div class="meta-content">
+          <span class="meta-label">Meting</span>
+          <span class="meta-value">{{ phase.measurement || '-' }}</span>
+        </div>
+      </div>
+    </section>
 
     <!-- Budget & Purchases Section -->
     <section class="budget-section">
@@ -219,7 +306,7 @@ function getStatusClass(status) {
 
       <div v-if="phase.status === 'go-no-go'" class="go-no-go-decision-box">
         <h3>Go/No-Go Beslissing</h3>
-        <p>Alle criteria zijn voltooid. Neem een beslissing om door te gaan naar de volgende fase.</p>
+        <p>Alle criteria zijn voltooid. Neem een beslissing om door te gaan naar de volgende objective.</p>
         <div class="decision-buttons">
           <button class="btn-go" @click="showGoNoGoModal = true; goNoGoDecision = 'go'">
             GO - Doorgaan
@@ -241,14 +328,18 @@ function getStatusClass(status) {
       </div>
     </section>
 
-    <!-- Tickets -->
+    <!-- Epics & Tickets -->
     <section class="tickets-section">
       <div class="section-header">
-        <h2>Tickets ({{ tickets.length }})</h2>
+        <h2>Epics & Tickets ({{ tickets.length }})</h2>
         <button class="add-btn" @click="showQuickAdd = true">+ Ticket</button>
       </div>
 
       <div v-if="showQuickAdd" class="quick-add">
+        <select v-model="quickAddEpic" class="epic-select">
+          <option value="">Geen epic</option>
+          <option v-for="epic in epics" :key="epic" :value="epic">{{ epic }}</option>
+        </select>
         <input
           v-model="quickAddTitle"
           type="text"
@@ -262,21 +353,44 @@ function getStatusClass(status) {
       </div>
 
       <div v-if="tickets.length === 0" class="empty-tickets">
-        <p>Nog geen tickets voor deze fase</p>
+        <p>Nog geen tickets voor deze objective</p>
         <button @click="showQuickAdd = true">Voeg eerste ticket toe</button>
       </div>
 
-      <div v-else class="ticket-list">
+      <!-- Epic Groups -->
+      <div v-else class="epic-groups">
         <div
-          v-for="ticket in tickets"
-          :key="ticket.id"
-          class="ticket-card"
-          :class="ticket.status"
+          v-for="(epicTickets, epicName) in ticketsByEpic"
+          :key="epicName"
+          class="epic-group"
         >
-          <span class="ticket-number">{{ ticket.ticketNumber }}</span>
-          <span class="ticket-priority" :class="ticket.priority">{{ ticket.priority }}</span>
-          <span class="ticket-title">{{ ticket.title }}</span>
-          <span class="ticket-status">{{ ticket.status }}</span>
+          <div class="epic-header" @click="toggleEpic(epicName)">
+            <span class="epic-toggle" :class="{ collapsed: collapsedEpics.has(epicName) }">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </span>
+            <h3 class="epic-name">{{ epicName }}</h3>
+            <span class="epic-count">{{ epicTickets.filter(t => t.status === 'done').length }}/{{ epicTickets.length }}</span>
+            <div class="epic-progress-bar">
+              <div class="epic-progress-fill" :style="{ width: getEpicProgress(epicName) + '%' }"></div>
+            </div>
+          </div>
+
+          <div v-if="!collapsedEpics.has(epicName)" class="epic-tickets">
+            <div
+              v-for="ticket in epicTickets"
+              :key="ticket.id"
+              class="ticket-card clickable"
+              :class="ticket.status"
+              @click="goToTicket(ticket)"
+            >
+              <span class="ticket-number">{{ ticket.ticketNumber }}</span>
+              <span class="ticket-priority" :class="ticket.priority">{{ ticket.priority }}</span>
+              <span class="ticket-title">{{ ticket.title }}</span>
+              <span class="ticket-status-badge" :class="ticket.status">{{ ticket.status }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -332,7 +446,7 @@ function getStatusClass(status) {
       <div class="modal go-no-go-modal">
         <h3>{{ goNoGoDecision === 'go' ? 'GO Beslissing' : 'NO-GO Beslissing' }}</h3>
         <p v-if="goNoGoDecision === 'go'">
-          Je staat op het punt om deze fase af te ronden en door te gaan naar de volgende fase.
+          Je staat op het punt om deze objective af te ronden en door te gaan naar de volgende.
         </p>
         <p v-else>
           Je staat op het punt om te stoppen. De no-go actie is: <strong>{{ phase.noGoAction }}</strong>
@@ -355,13 +469,13 @@ function getStatusClass(status) {
   </div>
 
   <div v-else class="not-found">
-    <p>Fase niet gevonden</p>
+    <p>Objective niet gevonden</p>
     <RouterLink to="/fasen">Terug naar overzicht</RouterLink>
   </div>
 </template>
 
 <style scoped>
-.fase-detail {
+.objective-detail {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -386,7 +500,7 @@ function getStatusClass(status) {
   gap: 1rem;
 }
 
-.fase-number {
+.objective-number {
   font-size: 0.75rem;
   text-transform: uppercase;
   color: var(--color-primary);
@@ -421,6 +535,48 @@ function getStatusClass(status) {
 .status-go-no-go { background: #fef3c7; color: #d97706; }
 .status-afgerond { background: #d1fae5; color: #059669; }
 
+/* Objective Meta */
+.objective-meta {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.meta-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.meta-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.meta-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.meta-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.meta-value {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
 /* Sections */
 section {
   background: var(--color-surface);
@@ -441,7 +597,7 @@ section {
   font-size: 1rem;
 }
 
-.edit-btn, .add-btn {
+.add-btn {
   font-size: 0.875rem;
   padding: 0.375rem 0.75rem;
   background: transparent;
@@ -450,7 +606,7 @@ section {
   cursor: pointer;
 }
 
-.edit-btn:hover, .add-btn:hover {
+.add-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
@@ -764,11 +920,89 @@ section {
   font-size: 0.875rem;
 }
 
+/* Epic Groups */
+.epic-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.epic-group {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.epic-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-background);
+  cursor: pointer;
+  user-select: none;
+}
+
+.epic-header:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.epic-toggle {
+  color: var(--color-text-secondary);
+  transition: transform 0.2s;
+  display: flex;
+}
+
+.epic-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.epic-name {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.epic-count {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.epic-progress-bar {
+  width: 60px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.epic-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s;
+}
+
+.epic-tickets {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Tickets */
 .quick-add {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.quick-add .epic-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  min-width: 140px;
 }
 
 .quick-add input {
@@ -813,19 +1047,29 @@ section {
   cursor: pointer;
 }
 
-.ticket-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .ticket-card {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 6px;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ticket-card:last-child {
+  border-bottom: none;
+}
+
+.ticket-card.clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ticket-card.clickable:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.ticket-card.done {
+  opacity: 0.6;
 }
 
 .ticket-number {
@@ -833,6 +1077,7 @@ section {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-primary);
+  min-width: 48px;
 }
 
 .ticket-priority {
@@ -852,11 +1097,16 @@ section {
   font-size: 0.875rem;
 }
 
-.ticket-status {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
+.ticket-status-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
   text-transform: capitalize;
 }
+
+.ticket-status-badge.todo { background: #f3f4f6; color: #6b7280; }
+.ticket-status-badge.in-progress { background: #dbeafe; color: #1d4ed8; }
+.ticket-status-badge.done { background: #d1fae5; color: #059669; }
 
 .view-all-tickets {
   display: block;
@@ -949,6 +1199,12 @@ section {
 .not-found {
   text-align: center;
   padding: 3rem;
+}
+
+@media (max-width: 768px) {
+  .objective-meta {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {

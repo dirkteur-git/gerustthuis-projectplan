@@ -29,12 +29,12 @@ function getStatusClass(status) {
 
 <template>
   <div class="dashboard">
-    <!-- Active Phase Banner -->
+    <!-- Active Objective Banner -->
     <section v-if="activePhase" class="active-phase-banner">
       <div class="phase-info">
-        <span class="phase-label">Huidige fase</span>
+        <span class="phase-label">Huidige objective</span>
         <h1>{{ activePhase.id }}. {{ activePhase.name }}</h1>
-        <p>{{ activePhase.description }}</p>
+        <p>{{ activePhase.goal || activePhase.description }}</p>
       </div>
       <div class="phase-progress">
         <div class="progress-ring">
@@ -47,7 +47,7 @@ function getStatusClass(status) {
         <span class="progress-label">Go/No-Go criteria</span>
       </div>
       <RouterLink :to="`/fasen/${activePhase.id}`" class="view-phase-btn">
-        Bekijk fase
+        Bekijk objective
       </RouterLink>
     </section>
 
@@ -118,9 +118,9 @@ function getStatusClass(status) {
         </p>
       </section>
 
-      <!-- Phase Overview -->
+      <!-- Objective Overview -->
       <section class="phases-overview">
-        <h2>Fase overzicht</h2>
+        <h2>Objectives</h2>
         <div class="phase-list">
           <RouterLink
             v-for="phase in store.phases"

@@ -1,7 +1,7 @@
 import { reactive, watch } from 'vue'
 import { initialData } from '../data/projectplan.js'
 
-const STORAGE_KEY = 'gerustthuis-admin'
+const STORAGE_KEY = 'gerustthuis-admin-v6'
 
 // Load from localStorage or use initial data
 function loadData() {
@@ -47,7 +47,34 @@ function migrateTickets() {
       ticket.blockedBy = []
       needsMigration = true
     }
+    // Initialize value, acceptanceCriteria, comments if not present
+    if (ticket.value === undefined) {
+      ticket.value = ''
+      needsMigration = true
+    }
+    if (ticket.acceptanceCriteria === undefined) {
+      ticket.acceptanceCriteria = ''
+      needsMigration = true
+    }
+    if (!ticket.comments) {
+      ticket.comments = []
+      needsMigration = true
+    }
+    // Initialize labels if not present
+    if (!ticket.labels) {
+      ticket.labels = []
+      needsMigration = true
+    }
   })
+  // Initialize available labels if not present
+  if (!store.labels) {
+    store.labels = [
+      { id: 'accounts', name: 'Accounts/inregelen', color: '#2563eb' },
+      { id: 'content', name: 'Content (tekst/beeld)', color: '#7c3aed' },
+      { id: 'dev', name: 'Dev actie', color: '#059669' }
+    ]
+    needsMigration = true
+  }
   if (needsMigration) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
   }
@@ -76,6 +103,15 @@ export function getTicketsByStatus(status) {
   return store.tickets.filter(t => t.status === status)
 }
 
+export function getTicketsByEpic(epic) {
+  return store.tickets.filter(t => t.epic === epic)
+}
+
+export function getEpicsByPhase(phaseId) {
+  const tickets = getTicketsByPhase(phaseId)
+  return [...new Set(tickets.map(t => t.epic).filter(Boolean))]
+}
+
 export function getNextTicketNumber() {
   const num = store.nextTicketNumber || 1
   return `GT-${String(num).padStart(3, '0')}`
@@ -89,12 +125,17 @@ export function addTicket(ticket) {
     title: ticket.title || '',
     description: ticket.description || '',
     phaseId: ticket.phaseId,
+    epic: ticket.epic || null,
     status: ticket.status || 'todo',
     priority: ticket.priority || 'should',
+    value: ticket.value || '',
+    acceptanceCriteria: ticket.acceptanceCriteria || '',
     estimatedHours: ticket.estimatedHours || null,
     plannedWeek: ticket.plannedWeek || null,
-    dependsOn: ticket.dependsOn || [], // tickets that must be done before this one
-    blockedBy: ticket.blockedBy || [], // tickets that are waiting for this one
+    dependsOn: ticket.dependsOn || [],
+    blockedBy: ticket.blockedBy || [],
+    labels: ticket.labels || [],
+    comments: [],
     createdAt: new Date().toISOString()
   }
   store.tickets.push(newTicket)
@@ -166,6 +207,53 @@ export function getDependencyTickets(ticketId) {
   const ticket = store.tickets.find(t => t.id === ticketId)
   if (!ticket || !ticket.dependsOn) return []
   return ticket.dependsOn.map(id => store.tickets.find(t => t.id === id)).filter(Boolean)
+}
+
+export function addComment(ticketId, text) {
+  const ticket = store.tickets.find(t => t.id === ticketId)
+  if (ticket) {
+    if (!ticket.comments) ticket.comments = []
+    ticket.comments.push({
+      id: Date.now(),
+      text,
+      createdAt: new Date().toISOString()
+    })
+  }
+}
+
+export function deleteComment(ticketId, commentId) {
+  const ticket = store.tickets.find(t => t.id === ticketId)
+  if (ticket && ticket.comments) {
+    const index = ticket.comments.findIndex(c => c.id === commentId)
+    if (index !== -1) {
+      ticket.comments.splice(index, 1)
+    }
+  }
+}
+
+export function addLabel(label) {
+  if (!store.labels) store.labels = []
+  store.labels.push({
+    id: label.id || Date.now().toString(),
+    name: label.name,
+    color: label.color || '#6b7280'
+  })
+}
+
+export function deleteLabel(labelId) {
+  if (!store.labels) return
+  store.labels = store.labels.filter(l => l.id !== labelId)
+  // Remove label from all tickets
+  store.tickets.forEach(ticket => {
+    if (ticket.labels) {
+      ticket.labels = ticket.labels.filter(id => id !== labelId)
+    }
+  })
+}
+
+export function getLabelById(labelId) {
+  if (!store.labels) return null
+  return store.labels.find(l => l.id === labelId)
 }
 
 export function updateTicket(id, updates) {

@@ -3,7 +3,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'Dashboard',
+    name: 'Home',
+    component: () => import('../views/Home.vue')
+  },
+  {
+    path: '/roadmap',
+    name: 'Roadmap',
     component: () => import('../views/Dashboard.vue')
   },
   {
@@ -25,6 +30,21 @@ const routes = [
     path: '/planning',
     name: 'Planning',
     component: () => import('../views/Planning.vue')
+  },
+  {
+    path: '/wachtlijst',
+    name: 'Wachtlijst',
+    component: () => import('../views/Wachtlijst.vue')
+  },
+  {
+    path: '/marketing',
+    name: 'Marketing',
+    component: () => import('../views/Marketing.vue')
+  },
+  {
+    path: '/huishoudens',
+    name: 'Huishoudens',
+    component: () => import('../views/Huishoudens.vue')
   }
 ]
 
